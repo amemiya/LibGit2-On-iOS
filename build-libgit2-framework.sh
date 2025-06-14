@@ -148,10 +148,10 @@ function build_openssl() {
 function build_libssh2() {
 	setup_variables $1
 
-	rm -rf libssh2-1.10.0
-	test -f libssh2-1.10.0.tar.gz || wget -q https://www.libssh2.org/download/libssh2-1.10.0.tar.gz
-	tar xzf libssh2-1.10.0.tar.gz
-	cd libssh2-1.10.0
+	rm -rf libssh2-1.11.1
+	test -f libssh2-1.11.1.tar.gz || wget -q https://www.libssh2.org/download/libssh2-1.11.1.tar.gz
+	tar xzf libssh2-1.11.1.tar.gz
+	cd libssh2-1.11.1
 
 	rm -rf build && mkdir build && cd build
 
