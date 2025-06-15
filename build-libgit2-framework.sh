@@ -109,8 +109,8 @@ function build_mbedtls() {
 
 	# It is better to remove and redownload the source since building make the source code directory dirty!
 	rm -rf mbedtls-3.6.3.1
-	test -f mbedtls-3.6.3.1.tar.gz || wget -q https://github.com/Mbed-TLS/mbedtls/archive/refs/tags/v3.6.3.1.tar.gz
-	tar xzf mbedtls-3.6.3.1.tar.gz
+	test -f v3.6.3.1.tar.gz || wget -q https://github.com/Mbed-TLS/mbedtls/archive/refs/tags/v3.6.3.1.tar.gz
+	tar xzf v3.6.3.1.tar.gz
 	cd mbedtls-3.6.3.1
 
 	case $PLATFORM in
