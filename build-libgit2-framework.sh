@@ -103,15 +103,15 @@ function build_libpcre() {
 	cmake --build . --target install >/dev/null 2>/dev/null
 }
 
-### Build openssl for a given platform
-function build_openssl() {
+### Build mbedtls for a given platform
+function build_mbedtls() {
 	setup_variables $1
 
 	# It is better to remove and redownload the source since building make the source code directory dirty!
-	rm -rf openssl-3.0.4
-	test -f openssl-3.0.4.tar.gz || wget -q https://www.openssl.org/source/openssl-3.0.4.tar.gz
-	tar xzf openssl-3.0.4.tar.gz
-	cd openssl-3.0.4
+	rm -rf mbedtls-3.6.3.1
+	test -f v3.6.3.1.tar.gz || wget -q https://github.com/Mbed-TLS/mbedtls/archive/refs/tags/v3.6.3.1.tar.gz
+	tar xzf v3.6.3.1.tar.gz
+	cd mbedtls-3.6.3.1
 
 	case $PLATFORM in
 		"iphoneos")
@@ -135,12 +135,13 @@ function build_openssl() {
 	esac
 
 	# See https://wiki.openssl.org/index.php/Compilation_and_Installation
-	./Configure --prefix=$REPO_ROOT/install/$PLATFORM \
-		--openssldir=$REPO_ROOT/install/$PLATFORM \
-		$TARGET_OS no-shared no-dso no-hw no-engine >/dev/null 2>/dev/null
-
-	make >/dev/null 2>/dev/null
-	make install_sw install_ssldirs >/dev/null 2>/dev/null
+	cmake -S "$SRC_DIR" -B "$REPO_ROOT/install/$PLATFORM" \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_OSX_SYSROOT=$PLATFORM \
+    -DCMAKE_OSX_ARCHITECTURES=$ARCH \
+    -DCMAKE_INSTALL_PREFIX=$REPO_ROOT/install/$PLATFORM \
+    -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+  cmake --build "$REPO_ROOT/install/$PLATFORM" --config Release
 	export -n CFLAGS
 }
 
@@ -148,15 +149,15 @@ function build_openssl() {
 function build_libssh2() {
 	setup_variables $1
 
-	rm -rf libssh2-1.10.0
-	test -f libssh2-1.10.0.tar.gz || wget -q https://www.libssh2.org/download/libssh2-1.10.0.tar.gz
-	tar xzf libssh2-1.10.0.tar.gz
-	cd libssh2-1.10.0
+	rm -rf libssh2-1.11.1
+	test -f libssh2-1.11.1.tar.gz || wget -q https://www.libssh2.org/download/libssh2-1.11.1.tar.gz
+	tar xzf libssh2-1.11.1.tar.gz
+	cd libssh2-1.11.1
 
 	rm -rf build && mkdir build && cd build
 
-	CMAKE_ARGS+=(-DCRYPTO_BACKEND=OpenSSL \
-		-DOPENSSL_ROOT_DIR=$REPO_ROOT/install/$PLATFORM \
+	CMAKE_ARGS+=(-DCRYPTO_BACKEND=mbedtls \
+		-DMBEDTLS_ROOT_DIR=$REPO_ROOT/install/$PLATFORM \
 		-DBUILD_EXAMPLES=OFF \
 		-DBUILD_TESTING=OFF)
 
@@ -183,10 +184,12 @@ function build_libgit2() {
     # See libgit2/cmake/FindPkgLibraries.cmake to understand how libgit2 looks for libssh2
     # Basically, setting LIBSSH2_FOUND forces SSH support and since we are building static library,
     # we only need the headers.
-    CMAKE_ARGS+=(-DOPENSSL_ROOT_DIR=$REPO_ROOT/install/$PLATFORM \
-        -DUSE_SSH=ON \
+    CMAKE_ARGS+=(-DUSE_SSH=ON \
         -DLIBSSH2_FOUND=YES \
-        -DLIBSSH2_INCLUDE_DIRS=$REPO_ROOT/install/$PLATFORM/include)
+        -DLIBSSH2_INCLUDE_DIRS=$REPO_ROOT/install/$PLATFORM/include \
+        -DLIBSSH2_LIBRARIES=$REPO_ROOT/install/$PLATFORM/lib/libssh2.a \
+        -DUSE_MBEDTLS=ON \
+        -DMBEDTLS_ROOT_DIR=$REPO_ROOT/install/$PLATFORM)
 
     cmake "${CMAKE_ARGS[@]}" .. #>/dev/null 2>/dev/null
 
@@ -225,7 +228,7 @@ function copy_modulemap() {
 for p in ${AVAILABLE_PLATFORMS[@]}; do
 	echo "Build libraries for $p"
 	build_libpcre $p
-	build_openssl $p
+	build_mbedtls $p
 	build_libssh2 $p
 	build_libgit2 $p
 
