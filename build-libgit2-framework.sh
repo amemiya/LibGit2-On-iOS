@@ -165,7 +165,6 @@ function build_libssh2() {
 
 	CMAKE_ARGS+=(-DCRYPTO_BACKEND=mbedTLS \
 		-DUSE_MBEDTLS=ON \
-		-DMBEDTLS_ROOT_DIR=$REPO_ROOT/install/$PLATFORM \
 		-DMBEDTLS_INCLUDE_DIR=$REPO_ROOT/install/$PLATFORM/include \
 		-DMBEDTLS_LIBRARY=$REPO_ROOT/install/$PLATFORM/library/libmbedtls.a \
 		-DMBEDCRYPTO_LIBRARY=$REPO_ROOT/install/$PLATFORM/library/libmbedcrypto.a \
@@ -180,7 +179,7 @@ function build_libssh2() {
 	cmake --build . --target install
 
 	echo "=== Checking libssh2 result ==="
-	ls -la $REPO_ROOT/install/$PLATFORM/library/libssh2.a || echo "libssh2.a not created!"
+	ls -la $REPO_ROOT/install/$PLATFORM/lib/libssh2.a || echo "libssh2.a not created!"
 	ls -la $REPO_ROOT/install/$PLATFORM/include/libssh2.h || echo "libssh2 headers not found!"
 }
 
@@ -205,7 +204,7 @@ function build_libgit2() {
     CMAKE_ARGS+=(-DUSE_SSH=ON \
         -DLIBSSH2_FOUND=YES \
         -DLIBSSH2_INCLUDE_DIRS=$REPO_ROOT/install/$PLATFORM/include \
-        -DLIBSSH2_LIBRARIES=$REPO_ROOT/install/$PLATFORM/library/libssh2.a \
+        -DLIBSSH2_LIBRARIES=$REPO_ROOT/install/$PLATFORM/lib/libssh2.a \
         -DUSE_MBEDTLS=ON \
         -DMBEDTLS_ROOT_DIR=$REPO_ROOT/install/$PLATFORM)
 
