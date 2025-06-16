@@ -210,18 +210,17 @@ function build_libgit2() {
     # See libgit2/cmake/FindPkgLibraries.cmake to understand how libgit2 looks for libssh2
     # Basically, setting LIBSSH2_FOUND forces SSH support and since we are building static library,
     # we only need the headers.
-    CMAKE_ARGS+=(-DUSE_SSH=ON \
-        -DLIBSSH2_FOUND=YES \
-        -DLIBSSH2_INCLUDE_DIRS=$REPO_ROOT/install/$PLATFORM/include \
-        -DLIBSSH2_LIBRARIES=$REPO_ROOT/install/$PLATFORM/lib/libssh2.a \
+    CMAKE_ARGS+=(-DUSE_SSH=OFF \
         -DUSE_MBEDTLS=ON \
         -DMBEDTLS_ROOT_DIR=$REPO_ROOT/install/$PLATFORM \
         -DPKG_CONFIG_EXECUTABLE="" \
         -DUSE_PKG_CONFIG=OFF)
 
-    cmake "${CMAKE_ARGS[@]}" .. #>/dev/null 2>/dev/null
+    echo "=== libgit2 CMake Configuration ==="
+    cmake "${CMAKE_ARGS[@]}" ..
 
-    cmake --build . --target install #>/dev/null 2>/dev/null
+    echo "=== libgit2 Build ==="
+    cmake --build . --target install
 }
 
 ### Create xcframework for a given library
