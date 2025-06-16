@@ -210,7 +210,9 @@ function build_libgit2() {
     # See libgit2/cmake/FindPkgLibraries.cmake to understand how libgit2 looks for libssh2
     # Basically, setting LIBSSH2_FOUND forces SSH support and since we are building static library,
     # we only need the headers.
-    CMAKE_ARGS+=(-DUSE_SSH=OFF \
+    CMAKE_ARGS+=(-DUSE_SSH=ON \
+        -DCMAKE_PREFIX_PATH=$REPO_ROOT/install/$PLATFORM \
+        -DLIBSSH2_ROOT=$REPO_ROOT/install/$PLATFORM \
         -DUSE_MBEDTLS=ON \
         -DMBEDTLS_ROOT_DIR=$REPO_ROOT/install/$PLATFORM \
         -DPKG_CONFIG_EXECUTABLE="" \
