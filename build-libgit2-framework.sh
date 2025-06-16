@@ -160,6 +160,10 @@ function build_libssh2() {
 
 	CMAKE_ARGS+=(-DCRYPTO_BACKEND=mbedtls \
 		-DMBEDTLS_ROOT_DIR=$REPO_ROOT/install/$PLATFORM \
+		-DMBEDTLS_INCLUDE_DIR=$REPO_ROOT/install/$PLATFORM/include \
+		-DMBEDTLS_LIBRARY=$REPO_ROOT/install/$PLATFORM/lib/libmbedtls.a \
+		-DMBEDX509_LIBRARY=$REPO_ROOT/install/$PLATFORM/lib/libmbedx509.a \
+		-DMBEDCRYPTO_LIBRARY=$REPO_ROOT/install/$PLATFORM/lib/libmbedcrypto.a \
 		-DBUILD_EXAMPLES=OFF \
 		-DBUILD_TESTING=OFF)
 
