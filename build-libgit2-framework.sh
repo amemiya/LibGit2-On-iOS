@@ -147,11 +147,7 @@ function build_mbedtls() {
     cmake --build "$REPO_ROOT/install/$PLATFORM" --config Release
     
     echo "=== mbedTLS Build Result ==="
-	  ls -la $REPO_ROOT/install/$PLATFORM
-	  ls -la $REPO_ROOT/install/$PLATFORM/library
-	  ls -la $REPO_ROOT/install/$PLATFORM/include
     ls -la $REPO_ROOT/install/$PLATFORM/library/libmbed*.a || echo "mbedTLS build failed - no libraries created!"
-    ls -la $REPO_ROOT/install/$PLATFORM/include/mbedtls/ || echo "mbedTLS build failed - no headers installed!"
 	export -n CFLAGS
 }
 
@@ -170,15 +166,11 @@ function build_libssh2() {
 		-DUSE_MBEDTLS=ON \
 		-DMBEDTLS_ROOT_DIR=$REPO_ROOT/install/$PLATFORM \
 		-DMBEDTLS_INCLUDE_DIR=$REPO_ROOT/install/$PLATFORM/include \
-		-DMBEDTLS_LIBRARY=$REPO_ROOT/install/$PLATFORM/lib/libmbedtls.a \
-		-DMBEDCRYPTO_LIBRARY=$REPO_ROOT/install/$PLATFORM/lib/libmbedcrypto.a \
-		-DMBEDX509_LIBRARY=$REPO_ROOT/install/$PLATFORM/lib/libmbedx509.a \
+		-DMBEDTLS_LIBRARY=$REPO_ROOT/install/$PLATFORM/library/libmbedtls.a \
+		-DMBEDCRYPTO_LIBRARY=$REPO_ROOT/install/$PLATFORM/library/libmbedcrypto.a \
+		-DMBEDX509_LIBRARY=$REPO_ROOT/install/$PLATFORM/library/libmbedx509.a \
 		-DBUILD_EXAMPLES=OFF \
 		-DBUILD_TESTING=OFF)
-
-	echo "=== Checking mbedTLS files ==="
-	ls -la $REPO_ROOT/install/$PLATFORM/lib/libmbed*.a || echo "mbedTLS libraries not found!"
-	ls -la $REPO_ROOT/install/$PLATFORM/include/mbedtls/ || echo "mbedTLS headers not found!"
 
 	echo "=== libssh2 CMake Configuration ==="
 	cmake "${CMAKE_ARGS[@]}" ..
@@ -187,7 +179,7 @@ function build_libssh2() {
 	cmake --build . --target install
 
 	echo "=== Checking libssh2 result ==="
-	ls -la $REPO_ROOT/install/$PLATFORM/lib/libssh2.a || echo "libssh2.a not created!"
+	ls -la $REPO_ROOT/install/$PLATFORM/library/libssh2.a || echo "libssh2.a not created!"
 	ls -la $REPO_ROOT/install/$PLATFORM/include/libssh2.h || echo "libssh2 headers not found!"
 }
 
