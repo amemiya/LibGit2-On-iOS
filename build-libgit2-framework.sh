@@ -8,6 +8,13 @@
 export REPO_ROOT=`pwd`
 export PATH=$PATH:$REPO_ROOT/tools/bin
 
+# openssl off
+export OPENSSL_ROOT_DIR=""
+export OPENSSL_LIBRARIES=""
+export OPENSSL_INCLUDE_DIR=""
+unset OPENSSL_ROOT_DIR
+unset PKG_CONFIG_PATH
+
 # List of platforms-architecture that we support
 # Note that there are limitations in `xcodebuild` command that disallows `maccatalyst` and `macosx` (native macOS lib) in the same xcframework.
 AVAILABLE_PLATFORMS=(iphoneos iphonesimulator iphonesimulator-arm64 maccatalyst maccatalyst-arm64) # macosx macosx-arm64
@@ -218,6 +225,11 @@ function build_libgit2() {
         -DUSE_OPENSSL=OFF \
         -DOpenSSL_FOUND=NO \
         -DOPENSSL_FOUND=NO \
+        -DOPENSSL_ROOT_DIR="" \
+        -DOPENSSL_INCLUDE_DIR="" \
+        -DOPENSSL_CRYPTO_LIBRARY="" \
+        -DOPENSSL_SSL_LIBRARY="" \
+        -DOPENSSL_LIBRARIES="" \
         -DPKG_CONFIG_EXECUTABLE="" \
         -DUSE_PKG_CONFIG=OFF)
 
