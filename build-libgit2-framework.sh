@@ -215,6 +215,9 @@ function build_libgit2() {
         -DLIBSSH2_ROOT=$REPO_ROOT/install/$PLATFORM \
         -DUSE_MBEDTLS=ON \
         -DMBEDTLS_ROOT_DIR=$REPO_ROOT/install/$PLATFORM \
+        -DUSE_OPENSSL=OFF \
+        -DOpenSSL_FOUND=NO \
+        -DOPENSSL_FOUND=NO \
         -DPKG_CONFIG_EXECUTABLE="" \
         -DUSE_PKG_CONFIG=OFF)
 
