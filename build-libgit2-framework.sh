@@ -145,6 +145,7 @@ function build_mbedtls() {
     -DENABLE_TESTING=OFF
     echo "=== mbedTLS Build ==="
     cmake --build "$REPO_ROOT/install/$PLATFORM" --config Release
+    cmake --install "$REPO_ROOT/install/$PLATFORM"
     
     echo "=== mbedTLS Build Result ==="
     ls -la $REPO_ROOT/install/$PLATFORM/library/libmbed*.a || echo "mbedTLS build failed - no libraries created!"
@@ -204,7 +205,7 @@ function build_libgit2() {
     CMAKE_ARGS+=(-DUSE_SSH=ON \
         -DLIBSSH2_FOUND=YES \
         -DLIBSSH2_INCLUDE_DIRS=$REPO_ROOT/install/$PLATFORM/include \
-        -DLIBSSH2_LIBRARIES=$REPO_ROOT/install/$PLATFORM/lib/libssh2.a \
+        -DLIBSSH2_LIBRARIES=$REPO_ROOT/install/$PLATFORM/library/libssh2.a \
         -DUSE_MBEDTLS=ON \
         -DMBEDTLS_ROOT_DIR=$REPO_ROOT/install/$PLATFORM)
 
@@ -251,7 +252,7 @@ for p in ${AVAILABLE_PLATFORMS[@]}; do
 
 	# Merge all static libs as libgit2.a since xcodebuild doesn't allow specifying multiple .a
 	cd $REPO_ROOT/install/$p
-	libtool -static -o libgit2.a lib/*.a
+	libtool -static -o libgit2.a lib/*.a library/*.a
 done
 
 # Merge the libgit2.a for iphonesimulator & iphonesimulator-arm64 as well as maccatalyst & maccatalyst-arm64 using lipo
