@@ -159,12 +159,13 @@ function build_libssh2() {
 
 	rm -rf build && mkdir build && cd build
 
-	CMAKE_ARGS+=(-DCRYPTO_BACKEND=mbedtls \
-		-DMBEDTLS_ROOT_DIR=$REPO_ROOT/install/$PLATFORM \
-		-DMBEDTLS_INCLUDE_DIR=$REPO_ROOT/install/$PLATFORM/include \
-		-DMBEDTLS_LIBRARY=$REPO_ROOT/install/$PLATFORM/lib/libmbedtls.a \
-		-DMBEDX509_LIBRARY=$REPO_ROOT/install/$PLATFORM/lib/libmbedx509.a \
-		-DMBEDCRYPTO_LIBRARY=$REPO_ROOT/install/$PLATFORM/lib/libmbedcrypto.a \
+	CMAKE_ARGS+=(-DCRYPTO_BACKEND=mbedTLS \
+		-DUSE_MBEDTLS=ON \
+		-DMbedTLS_ROOT=$REPO_ROOT/install/$PLATFORM \
+		-DMbedTLS_INCLUDE_DIR=$REPO_ROOT/install/$PLATFORM/include \
+		-DMbedTLS_LIBRARY=$REPO_ROOT/install/$PLATFORM/lib/libmbedtls.a \
+		-DMbedCrypto_LIBRARY=$REPO_ROOT/install/$PLATFORM/lib/libmbedcrypto.a \
+		-DMbedX509_LIBRARY=$REPO_ROOT/install/$PLATFORM/lib/libmbedx509.a \
 		-DBUILD_EXAMPLES=OFF \
 		-DBUILD_TESTING=OFF)
 
