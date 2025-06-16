@@ -147,10 +147,10 @@ function build_mbedtls() {
     cmake --build "$REPO_ROOT/install/$PLATFORM" --config Release
     
     echo "=== mbedTLS Build Result ==="
-	ls -la $REPO_ROOT/install/$PLATFORM
-	ls -la $REPO_ROOT/install/$PLATFORM/lib
-	ls -la $REPO_ROOT/install/$PLATFORM/include
-    ls -la $REPO_ROOT/install/$PLATFORM/lib/libmbed*.a || echo "mbedTLS build failed - no libraries created!"
+	  ls -la $REPO_ROOT/install/$PLATFORM
+	  ls -la $REPO_ROOT/install/$PLATFORM/library
+	  ls -la $REPO_ROOT/install/$PLATFORM/include
+    ls -la $REPO_ROOT/install/$PLATFORM/library/libmbed*.a || echo "mbedTLS build failed - no libraries created!"
     ls -la $REPO_ROOT/install/$PLATFORM/include/mbedtls/ || echo "mbedTLS build failed - no headers installed!"
 	export -n CFLAGS
 }
