@@ -8,6 +8,13 @@
 export REPO_ROOT=`pwd`
 export PATH=$PATH:$REPO_ROOT/tools/bin
 
+# openssl off
+export OPENSSL_ROOT_DIR=""
+export OPENSSL_LIBRARIES=""
+export OPENSSL_INCLUDE_DIR=""
+unset OPENSSL_ROOT_DIR
+unset PKG_CONFIG_PATH
+
 # List of platforms-architecture that we support
 # Note that there are limitations in `xcodebuild` command that disallows `maccatalyst` and `macosx` (native macOS lib) in the same xcframework.
 AVAILABLE_PLATFORMS=(iphoneos iphonesimulator iphonesimulator-arm64 maccatalyst maccatalyst-arm64) # macosx macosx-arm64
@@ -103,15 +110,15 @@ function build_libpcre() {
 	cmake --build . --target install >/dev/null 2>/dev/null
 }
 
-### Build openssl for a given platform
-function build_openssl() {
+### Build mbedtls for a given platform
+function build_mbedtls() {
 	setup_variables $1
 
 	# It is better to remove and redownload the source since building make the source code directory dirty!
-	rm -rf openssl-3.0.4
-	test -f openssl-3.0.4.tar.gz || wget -q https://www.openssl.org/source/openssl-3.0.4.tar.gz
-	tar xzf openssl-3.0.4.tar.gz
-	cd openssl-3.0.4
+	rm -rf mbedtls-3.6.3.1
+	test -f v3.6.3.1.tar.gz || wget -q https://github.com/Mbed-TLS/mbedtls/archive/refs/tags/v3.6.3.1.tar.gz
+	tar xzf v3.6.3.1.tar.gz
+	cd mbedtls-3.6.3.1
 
 	case $PLATFORM in
 		"iphoneos")
@@ -135,34 +142,52 @@ function build_openssl() {
 	esac
 
 	# See https://wiki.openssl.org/index.php/Compilation_and_Installation
-	./Configure --prefix=$REPO_ROOT/install/$PLATFORM \
-		--openssldir=$REPO_ROOT/install/$PLATFORM \
-		$TARGET_OS no-shared no-dso no-hw no-engine >/dev/null 2>/dev/null
-
-	make >/dev/null 2>/dev/null
-	make install_sw install_ssldirs >/dev/null 2>/dev/null
+	cmake -S . -B "$REPO_ROOT/install/$PLATFORM" \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_OSX_SYSROOT=$SYSROOT \
+    -DCMAKE_OSX_ARCHITECTURES=$ARCH \
+    -DCMAKE_INSTALL_PREFIX=$REPO_ROOT/install/$PLATFORM \
+    -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+    -DENABLE_PROGRAMS=OFF \
+    -DENABLE_TESTING=OFF
+    echo "=== mbedTLS Build ==="
+    cmake --build "$REPO_ROOT/install/$PLATFORM" --config Release
+    cmake --install "$REPO_ROOT/install/$PLATFORM"
+    
+    echo "=== mbedTLS Build Result ==="
+    ls -la $REPO_ROOT/install/$PLATFORM/library/libmbed*.a || echo "mbedTLS build failed - no libraries created!"
 	export -n CFLAGS
 }
 
-### Build libssh2 for a given platform (assume openssl was built)
+### Build libssh2 for a given platform (assume mbedtls was built)
 function build_libssh2() {
 	setup_variables $1
 
-	rm -rf libssh2-1.10.0
-	test -f libssh2-1.10.0.tar.gz || wget -q https://www.libssh2.org/download/libssh2-1.10.0.tar.gz
-	tar xzf libssh2-1.10.0.tar.gz
-	cd libssh2-1.10.0
+	rm -rf libssh2-1.11.1
+	test -f libssh2-1.11.1.tar.gz || wget -q https://www.libssh2.org/download/libssh2-1.11.1.tar.gz
+	tar xzf libssh2-1.11.1.tar.gz
+	cd libssh2-1.11.1
 
 	rm -rf build && mkdir build && cd build
 
-	CMAKE_ARGS+=(-DCRYPTO_BACKEND=OpenSSL \
-		-DOPENSSL_ROOT_DIR=$REPO_ROOT/install/$PLATFORM \
+	CMAKE_ARGS+=(-DCRYPTO_BACKEND=mbedTLS \
+		-DUSE_MBEDTLS=ON \
+		-DMBEDTLS_INCLUDE_DIR=$REPO_ROOT/install/$PLATFORM/include \
+		-DMBEDTLS_LIBRARY=$REPO_ROOT/install/$PLATFORM/library/libmbedtls.a \
+		-DMBEDCRYPTO_LIBRARY=$REPO_ROOT/install/$PLATFORM/library/libmbedcrypto.a \
+		-DMBEDX509_LIBRARY=$REPO_ROOT/install/$PLATFORM/library/libmbedx509.a \
 		-DBUILD_EXAMPLES=OFF \
 		-DBUILD_TESTING=OFF)
 
-	cmake "${CMAKE_ARGS[@]}" .. >/dev/null 2>/dev/null
+	echo "=== libssh2 CMake Configuration ==="
+	cmake "${CMAKE_ARGS[@]}" ..
 
-	cmake --build . --target install >/dev/null 2>/dev/null
+	echo "=== libssh2 Build ==="
+	cmake --build . --target install
+
+	echo "=== Checking libssh2 result ==="
+	ls -la $REPO_ROOT/install/$PLATFORM/lib/libssh2.a || echo "libssh2.a not created!"
+	ls -la $REPO_ROOT/install/$PLATFORM/include/libssh2.h || echo "libssh2 headers not found!"
 }
 
 ### Build libgit2 for a single platform (given as the first and only argument)
@@ -180,17 +205,39 @@ function build_libgit2() {
 
     CMAKE_ARGS+=(-DBUILD_CLAR=NO)
 
+    echo "=== Debugging libgit2 dependencies ==="
+    echo "Checking libssh2:"
+    ls -la $REPO_ROOT/install/$PLATFORM/lib/libssh2.a || echo "libssh2.a missing!"
+    echo "Checking mbedTLS:"
+    ls -la $REPO_ROOT/install/$PLATFORM/library/libmbed*.a || echo "mbedTLS libraries missing!"
+    echo "Checking all libraries:"
+    ls -la $REPO_ROOT/install/$PLATFORM/lib/
+    ls -la $REPO_ROOT/install/$PLATFORM/library/
+
     # See libgit2/cmake/FindPkgLibraries.cmake to understand how libgit2 looks for libssh2
     # Basically, setting LIBSSH2_FOUND forces SSH support and since we are building static library,
     # we only need the headers.
-    CMAKE_ARGS+=(-DOPENSSL_ROOT_DIR=$REPO_ROOT/install/$PLATFORM \
-        -DUSE_SSH=ON \
-        -DLIBSSH2_FOUND=YES \
-        -DLIBSSH2_INCLUDE_DIRS=$REPO_ROOT/install/$PLATFORM/include)
+    CMAKE_ARGS+=(-DUSE_SSH=ON \
+        -DCMAKE_PREFIX_PATH=$REPO_ROOT/install/$PLATFORM \
+        -DLIBSSH2_ROOT=$REPO_ROOT/install/$PLATFORM \
+        -DUSE_MBEDTLS=ON \
+        -DMBEDTLS_ROOT_DIR=$REPO_ROOT/install/$PLATFORM \
+        -DUSE_OPENSSL=OFF \
+        -DOpenSSL_FOUND=NO \
+        -DOPENSSL_FOUND=NO \
+        -DOPENSSL_ROOT_DIR="" \
+        -DOPENSSL_INCLUDE_DIR="" \
+        -DOPENSSL_CRYPTO_LIBRARY="" \
+        -DOPENSSL_SSL_LIBRARY="" \
+        -DOPENSSL_LIBRARIES="" \
+        -DPKG_CONFIG_EXECUTABLE="" \
+        -DUSE_PKG_CONFIG=OFF)
 
-    cmake "${CMAKE_ARGS[@]}" .. #>/dev/null 2>/dev/null
+    echo "=== libgit2 CMake Configuration ==="
+    cmake "${CMAKE_ARGS[@]}" ..
 
-    cmake --build . --target install #>/dev/null 2>/dev/null
+    echo "=== libgit2 Build ==="
+    cmake --build . --target install
 }
 
 ### Create xcframework for a given library
@@ -225,13 +272,13 @@ function copy_modulemap() {
 for p in ${AVAILABLE_PLATFORMS[@]}; do
 	echo "Build libraries for $p"
 	build_libpcre $p
-	build_openssl $p
+	build_mbedtls $p
 	build_libssh2 $p
 	build_libgit2 $p
 
 	# Merge all static libs as libgit2.a since xcodebuild doesn't allow specifying multiple .a
 	cd $REPO_ROOT/install/$p
-	libtool -static -o libgit2.a lib/*.a
+	libtool -static -o libgit2.a lib/*.a library/*.a
 done
 
 # Merge the libgit2.a for iphonesimulator & iphonesimulator-arm64 as well as maccatalyst & maccatalyst-arm64 using lipo
