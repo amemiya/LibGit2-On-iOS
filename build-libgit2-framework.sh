@@ -135,13 +135,13 @@ function build_mbedtls() {
 	esac
 
 	# See https://wiki.openssl.org/index.php/Compilation_and_Installation
-	cmake -S "$SRC_DIR" -B "$REPO_ROOT/install/$PLATFORM" \
+	cmake -S "$REPO_ROOT/mbedtls-3.6.3.1" -B "$REPO_ROOT/install/$PLATFORM" \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_OSX_SYSROOT=$PLATFORM \
     -DCMAKE_OSX_ARCHITECTURES=$ARCH \
     -DCMAKE_INSTALL_PREFIX=$REPO_ROOT/install/$PLATFORM \
     -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-  cmake --build "$REPO_ROOT/install/$PLATFORM" --config Release
+    cmake --build "$REPO_ROOT/install/$PLATFORM" --config Release
 	export -n CFLAGS
 }
 
