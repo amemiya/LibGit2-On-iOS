@@ -145,6 +145,10 @@ function build_mbedtls() {
     -DENABLE_TESTING=OFF
     echo "=== mbedTLS Build ==="
     cmake --build "$REPO_ROOT/install/$PLATFORM" --config Release
+    
+    echo "=== mbedTLS Build Result ==="
+    ls -la $REPO_ROOT/install/$PLATFORM/lib/libmbed*.a || echo "mbedTLS build failed - no libraries created!"
+    ls -la $REPO_ROOT/install/$PLATFORM/include/mbedtls/ || echo "mbedTLS build failed - no headers installed!"
 	export -n CFLAGS
 }
 
@@ -169,11 +173,19 @@ function build_libssh2() {
 		-DBUILD_EXAMPLES=OFF \
 		-DBUILD_TESTING=OFF)
 
+	echo "=== Checking mbedTLS files ==="
+	ls -la $REPO_ROOT/install/$PLATFORM/lib/libmbed*.a || echo "mbedTLS libraries not found!"
+	ls -la $REPO_ROOT/install/$PLATFORM/include/mbedtls/ || echo "mbedTLS headers not found!"
+
 	echo "=== libssh2 CMake Configuration ==="
 	cmake "${CMAKE_ARGS[@]}" ..
 
 	echo "=== libssh2 Build ==="
 	cmake --build . --target install
+
+	echo "=== Checking libssh2 result ==="
+	ls -la $REPO_ROOT/install/$PLATFORM/lib/libssh2.a || echo "libssh2.a not created!"
+	ls -la $REPO_ROOT/install/$PLATFORM/include/libssh2.h || echo "libssh2 headers not found!"
 }
 
 ### Build libgit2 for a single platform (given as the first and only argument)
