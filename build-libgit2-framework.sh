@@ -143,11 +143,12 @@ function build_mbedtls() {
     -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
     -DENABLE_PROGRAMS=OFF \
     -DENABLE_TESTING=OFF
+    echo "=== mbedTLS Build ==="
     cmake --build "$REPO_ROOT/install/$PLATFORM" --config Release
 	export -n CFLAGS
 }
 
-### Build libssh2 for a given platform (assume openssl was built)
+### Build libssh2 for a given platform (assume mbedtls was built)
 function build_libssh2() {
 	setup_variables $1
 
@@ -167,9 +168,11 @@ function build_libssh2() {
 		-DBUILD_EXAMPLES=OFF \
 		-DBUILD_TESTING=OFF)
 
-	cmake "${CMAKE_ARGS[@]}" .. >/dev/null 2>/dev/null
+	echo "=== libssh2 CMake Configuration ==="
+	cmake "${CMAKE_ARGS[@]}" ..
 
-	cmake --build . --target install >/dev/null 2>/dev/null
+	echo "=== libssh2 Build ==="
+	cmake --build . --target install
 }
 
 ### Build libgit2 for a single platform (given as the first and only argument)
